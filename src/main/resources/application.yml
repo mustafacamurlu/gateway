@@ -28,6 +28,6 @@ spring:
         - TokenRelay
       routes:
         - id: devicemanagement
-          uri: http://192.168.56.116:9091
+          uri: http://${DEVICEMANAGEMENT_HOST}:${DEVICEMANAGEMENT_PORT}
           predicates:
             - Path=/devicemanagement/**
