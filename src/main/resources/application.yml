@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${OIDC_CLIENT}
+            client-secret: ${OIDC_CLIENT_SECRET}
+            scope: openid, profile
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            authorization-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/auth
+            token-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/token
+            user-info-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/userinfo
+            jwk-set-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+      routes:
+        - id: devicemanagement
+          uri: http://192.168.56.116:9091
+          predicates:
+            - Path=/devicemanagement/**
