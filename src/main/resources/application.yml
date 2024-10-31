@@ -2,8 +2,14 @@ server:
   port: 8080
 
 spring:
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis}
+      port: ${SPRING_REDIS_PORT:6379}
+
   application:
     name: gateway
+
   security:
     oauth2:
       client:
@@ -21,6 +27,9 @@ spring:
             user-info-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/userinfo
             jwk-set-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/certs
             user-name-attribute: preferred_username
+      resource-server:
+        jwt:
+          jwk-set-uri: http://${OIDC_HOST}/realms/${OIDC_REALM}/protocol/openid-connect/certs
 
   cloud:
     gateway:
@@ -28,6 +37,14 @@ spring:
         - TokenRelay
       routes:
         - id: devicemanagement
-          uri: http://${DEVICEMANAGEMENT_HOST}:${DEVICEMANAGEMENT_PORT}
+          uri: http://devicemanagement:${DEVICEMANAGEMENT_PORT}
           predicates:
             - Path=/devicemanagement/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 2
+                key-resolver: '#{@ipKeyResolver}'
+
+
